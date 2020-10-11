@@ -1,0 +1,1057 @@
+﻿<!DOCTYPE html>
+
+
+
+<html lang="en">
+
+
+
+<head>
+
+
+
+    <meta charset="UTF-8">
+
+
+
+    <title>T  R  E  E</title>
+
+
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+
+
+    <style>
+
+
+
+        .button {
+
+
+
+            background-color: #4CAF50; /* Green */
+
+
+
+            border: none;
+
+
+
+            color: white;
+
+
+
+            padding: 10px 20px;
+
+
+
+            text-align: center;
+
+
+
+            text-decoration: none;
+
+
+
+            display: inline-block;
+
+
+
+            font-size: 12px;
+
+
+
+            margin: 4px 2px;
+
+
+
+            -webkit-transition-duration: 0.4s; /* Safari */
+
+
+
+            transition-duration: 0.4s;
+
+
+
+            cursor: pointer;
+
+
+
+        }
+
+
+
+
+
+
+
+        .button1 {
+
+
+
+            background-color: white;
+
+
+
+            color: black;
+
+
+
+            border: 2px solid #4CAF50;
+
+
+
+        }
+
+
+
+
+
+
+
+            .button1:hover {
+
+
+
+                background-color: #4CAF50;
+
+
+
+                color: white;
+
+
+
+            }
+
+
+
+
+
+
+
+        .text {
+
+
+
+            border-style: solid;
+
+
+
+            border-color: #98bf21;
+
+
+
+        }
+
+
+
+    </style>
+
+
+
+</head>
+
+
+
+<body background="tree.jpg">
+
+
+
+    <div id="txt" align="center">
+
+
+
+        <h1>Create A Tree</h1>
+
+
+
+        <textarea id="input" class="text" cols="66" rows="10" placeholder="请输入内容"></textarea>
+
+
+
+    </div>
+
+
+
+
+
+
+
+    <div id="but" align="center" style="vertical-align: middle;">
+
+
+
+        <input type=button value=刷新 onclick="location.reload()" class="button button1" style="margin-right:150px;">
+
+
+
+        <button class="button button1" onclick="show()" style="margin-left:150px;">生成</button>
+
+
+
+    </div>
+
+
+
+    <div id="main">
+
+
+
+        <div id="Tree"></div>
+
+
+
+    </div>
+
+
+
+    <script>
+
+
+
+        function show() {
+
+
+
+
+
+
+
+            var text = document.getElementById("input").value;
+
+
+
+            var top = text.slice(text.indexOf("：") + 1, text.indexOf("2"))
+
+
+
+            var flag = text.match(/2/g);
+
+
+
+            var line = text.match(/:/g);
+
+
+
+            var brunch = flag.length;
+
+
+
+            var lines = text.split(/[(\r\n)\r\n]+/)//按行分成组
+
+
+
+
+
+
+
+            var data = {													//初始化对象
+
+
+
+                "name": "张三",
+
+
+
+                "children":
+
+
+
+                    [
+
+
+
+                        {
+
+
+
+                            "name": "2016级博士生",
+
+
+
+                            "children":
+
+
+
+                                [
+
+
+
+                                    {
+
+
+
+                                        "name": "林立",
+
+
+
+                                        "children":
+
+
+
+                                            [
+
+
+
+                                                {
+
+
+
+                                                    "name":"JAVA"
+
+
+
+                                                }
+
+
+
+                                            ]
+
+
+
+                                    }
+
+
+
+                                ]
+
+
+
+                        }
+
+
+
+                    ]
+
+
+
+            };
+
+
+
+
+
+
+
+            for (var i = 0; i < brunch; i++) {
+
+
+
+                data.children[i] = {
+
+
+
+                    "name": "2016级博士生",
+
+
+
+                    "children":
+
+
+
+                        [
+
+
+
+                            {
+
+
+
+                                "name": "林立",
+
+
+
+                                "children":
+
+
+
+                                    [
+
+
+
+                                        {
+
+
+
+                                            "name":"JAVA"
+
+
+
+                                        }
+
+
+
+                                    ]
+
+
+
+                            }
+
+
+
+                        ]
+
+
+
+                };
+
+
+
+                data.children[i].name = lines[i + 1].slice(0, lines[i + 1].indexOf("："));
+
+
+
+                for (var j = 0; j < lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、').length; j++) {
+
+
+
+                    var type = lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、')[j];
+
+
+
+                    data.children[i].children[j] = { "name": "林立" };
+
+
+
+                    data.children[i].children[j].name = type;
+
+
+
+                }
+
+
+
+            }
+
+
+
+
+
+
+
+            const root = d3.hierarchy(data);
+
+
+
+
+
+
+
+
+
+
+
+            root.x0 = dy / 2;
+
+
+
+            root.y0 = 0;
+
+
+
+            root.descendants().forEach((d, i) => {
+
+
+
+                d.id = i;
+
+
+
+                d._children = d.children;
+
+
+
+                //if (d.depth && d.data.name.length !== 2) d.children = null; //当前条件下的节点不自动展示
+
+
+
+            });
+
+
+
+
+
+
+
+
+
+
+
+            var svg = d3.select("#Tree")     //选择文档中的body元素
+
+
+
+                .append("svg")          //添加一个svg元素
+
+
+
+                .attr("width", width)       //设定宽度
+
+
+
+                .attr("viewBox", [-margin.left, -margin.top, width, dx])
+
+
+
+                .style("font", "15px sans-serif")
+
+
+
+                .style("user-select", "none");
+
+
+
+
+
+
+
+
+
+
+
+            const gLink = svg.append("g")
+
+
+
+                .attr("fill", "none")
+
+
+
+                .attr("stroke", "#555")
+
+
+
+                .attr("stroke-opacity", 0.4)
+
+
+
+                .attr("stroke-width", 1.5);
+
+
+
+
+
+
+
+
+
+
+
+            const gNode = svg.append("g")
+
+
+
+                .attr("cursor", "pointer")
+
+
+
+                .attr("pointer-events", "all");
+
+
+
+
+
+
+
+
+
+
+
+            function update(source) {
+
+
+
+                const duration = d3.event && d3.event.altKey ? 2500 : 250;
+
+
+
+                const nodes = root.descendants().reverse();
+
+
+
+                const links = root.links();
+
+
+
+
+
+
+
+
+
+
+
+                // Compute the new tree layout.
+
+
+
+                tree(root);
+
+
+
+
+
+
+
+                var left = root;
+
+
+
+                var right = root;
+
+
+
+                root.eachBefore(node => {
+
+
+
+                    if (node.x < left.x) left = node;
+
+
+
+                    if (node.x > right.x) right = node;
+
+
+
+                });
+
+
+
+
+
+
+
+
+
+
+
+                const height = right.x - left.x + margin.top + margin.bottom;
+
+
+
+
+
+
+
+
+
+
+
+                const transition = svg.transition()
+
+
+
+                    .duration(duration)
+
+
+
+                    .attr("viewBox", [-margin.left, left.x - margin.top, width, height])
+
+
+
+                    .tween("resize", window.ResizeObserver ? null : () => () => svg.dispatch("toggle"));
+
+
+
+
+
+
+
+
+
+
+
+                // Update the nodes…
+
+
+
+                const node = gNode.selectAll("g")
+
+
+
+                    .data(nodes, d => d.id);
+
+
+
+
+
+
+
+
+
+
+
+                // Enter any new nodes at the parent's previous position.
+
+
+
+                const nodeEnter = node.enter().append("g")
+
+
+
+                    .attr("transform", d => `translate(${source.y0},${source.x0})`)
+
+
+
+                    .attr("fill-opacity", 0)
+
+
+
+                    .attr("stroke-opacity", 0)
+
+
+
+                    .on("click", d => {
+
+
+
+                        d.children = d.children ? null : d._children;
+
+
+
+                        update(d);
+
+
+
+                    });
+
+
+
+
+
+
+
+
+
+
+
+                nodeEnter.append("circle")
+
+
+
+                    .attr("r", 6)
+
+
+
+                    .attr("fill", d => d._children ? "#ccc" : "#fff")
+
+
+
+                    .attr("stroke", 'steelblue')
+
+
+
+                    .attr("stroke-width", 2);
+
+
+
+
+
+
+
+
+
+
+
+                nodeEnter.append("text")
+
+
+
+                    .attr("dy", "0.31em")
+
+
+
+                    .attr("x", d => d._children ? -10 : 10)
+
+
+
+                    .attr("text-anchor", d => d._children ? "end" : "start")
+
+
+
+                    .text(d => d.data.name)
+
+
+
+                    .clone(true).lower()
+
+
+
+                    .attr("stroke-linejoin", "round")
+
+
+
+                    .attr("stroke-width", 3)
+
+
+
+                    .attr("stroke", "white");
+
+
+
+
+
+
+
+
+
+
+
+                //将节点转换到新位置
+
+
+
+                const nodeUpdate = node.merge(nodeEnter).transition(transition)
+
+
+
+                    .attr("transform", d => `translate(${d.y},${d.x})`)
+
+
+
+                    .attr("fill-opacity", 1)
+
+
+
+                    .attr("stroke-opacity", 1);
+
+
+
+
+
+
+
+
+
+
+
+                // Transition exiting nodes to the parent's new position.
+
+
+
+                const nodeExit = node.exit().transition(transition).remove()
+
+
+
+                    .attr("transform", d => `translate(${source.y},${source.x})`)
+
+
+
+                    .attr("fill-opacity", 0)
+
+
+
+                    .attr("stroke-opacity", 0);
+
+
+
+
+
+
+
+
+
+
+
+                // Update the links…
+
+
+
+                const link = gLink.selectAll("path")
+
+
+
+                    .data(links, d => d.target.id);
+
+
+
+
+
+
+
+
+
+
+
+                // Enter any new links at the parent's previous position.
+
+
+
+                const linkEnter = link.enter().append("path")
+
+
+
+                    .attr("d", d => {
+
+
+
+                        const o = { x: source.x0, y: source.y0 };
+
+
+
+                        return diagonal({ source: o, target: o });
+
+
+
+                    });
+
+
+
+
+
+
+
+
+
+
+
+                // Transition links to their new position.
+
+
+
+                link.merge(linkEnter).transition(transition)
+
+
+
+                    .attr("d", diagonal);
+
+
+
+
+
+
+
+
+
+
+
+                // Transition exiting nodes to the parent's new position.
+
+
+
+                link.exit().transition(transition).remove()
+
+
+
+                    .attr("d", d => {
+
+
+
+                        const o = { x: source.x, y: source.y };
+
+
+
+                        return diagonal({ source: o, target: o });
+
+
+
+                    });
+
+
+
+
+
+
+
+
+
+
+
+                // Stash the old positions for transition.
+
+
+
+                root.eachBefore(d => {
+
+
+
+                    d.x0 = d.x;
+
+
+
+                    d.y0 = d.y;
+
+
+
+                });
+
+
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+            update(root);
+
+
+
+
+
+
+
+
+
+
+
+            return svg.node();
+
+
+
+        }
+
+
+
+
+
+
+
+        margin = ({ top: 100, right: 120, bottom: 10, left: 600 });
+
+
+
+        var width = 2000;  //画布的宽度
+
+
+
+        dy = 300;   //节点左右间距
+
+
+
+        dx = 30;    //节点上下间距
+
+
+
+
+
+
+
+        tree = d3.tree().nodeSize([dx, dy]);
+
+
+
+        diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+
+
+
+
+
+
+
+    </script>
+
+
+
+</body>
+
+
+
+</html> 
