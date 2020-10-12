@@ -45,23 +45,47 @@
 
     <div id="but" align="center" style="vertical-align: middle;">
         <input type=button value=刷新 onclick="location.reload()" class="button button1" style="margin-right:150px;">
-        <button class="button button1" onclick="show()" style="margin-left:150px;">生成</button>
+        <button class="button button1" onclick="jiexi()" style="margin-left:150px;">生成</button>
     </div>
     <div id="main">
         <div id="Tree"></div>
     </div>
     <script>
-        var flag = true;
-        function show() {
+        function jiexi() {
+            var text = document.getElementById("input").value;
+            var top = text.slice(text.indexOf("：") + 1, text.indexOf("2"))
+            var cnt = text.match(/2/g);
+            var line = text.match(/：/g).length;
+            var lines = text.split(/[(\r\n)\r\n]+/)
+            var start = 0, branch = 0, end = 0;
+            for (var i = 0; i < line; i++) {
+                if (lines[i].indexOf("导师") != -1) {
+                    start = i;
+                    i = i + 1;
+                    branch = 0;
+                    for (var j = i; j < line; j++) {
+                        if (lines[j].indexOf("生：") != -1) {
+                            branch = branch + 1;
+                        }
+                        if (lines[j].indexOf("导师") != -1) {
+                            end = j - 1;
+                            showAtree(start, branch, end, lines);
+                            break;
+                        }
+                        if (j == line - 1) {
+                            end = j;
+                            showAtree(start, branch, end, lines);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        function showAtree(start = 0, branch = 4, end = 5, lines) {
+            var flag = true;
             if (flag == 1) {
-                var text = document.getElementById("input").value;
-                var top = text.slice(text.indexOf("：") + 1, text.indexOf("2"))
-                var cnt = text.match(/2/g);
-                var line = text.match(/：/g).length;
-                var brunch = cnt.length;
-                var lines = text.split(/[(\r\n)\r\n]+/)
-
-                var data = {
+                let data = {
                     "name": "",
                     "children":
                         [
@@ -80,10 +104,10 @@
                         ]
                 };
 
-                data.name = lines[0].slice(lines[0].indexOf("：") + 1, lines[1].indexOf("："));
-
-                for (var i = 0; i < brunch; i++) {
-                    data.children[i] = {
+                data.name = lines[start].slice(lines[start].indexOf("：") + 1, lines[start + 1].indexOf("："));
+                var j = 0;
+                for (var i = start; i < start + branch; i++) {
+                    data.children[j] = {
                         "name": "",
                         "children":
                             [
@@ -95,32 +119,33 @@
                                 }
                             ]
                     };
-                    data.children[i].name = lines[i + 1].slice(0, lines[i + 1].indexOf("："));
-                    for (var j = 0; j < lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、').length; j++) {
-                        var nam = lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、')[j];
-                        data.children[i].children[j] = {
-                            "name": "林立",
+                    data.children[j].name = lines[i + 1].slice(0, lines[i + 1].indexOf("："));
+                    for (var k = 0; k < lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、').length; k++) {
+                        var nam = lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、')[k];
+                        data.children[j].children[k] = {
+                            "name": "",
                             "children":
                                 [
                                 ]
                         };
-                        data.children[i].children[j].name = nam;
+                        data.children[j].children[k].name = nam;
                         var x = -1;
                         var sea = nam + "："
-                        for (var k = 0; k < line; k++) {
-                            if (lines[k].indexOf(sea) != -1) {
+                        for (var l = start; l < end; l++) {
+                            if (lines[l].indexOf(sea) != -1) {
                                 x = 1;
                                 break;
                             }
                         }
                         if (x == 1) {
-                            for (var l = 0; l < lines[k].slice(lines[k].indexOf("：") + 1, 50).split('、').length; l++) {
-                                var skill = lines[k].slice(lines[k].indexOf("：") + 1, 50).split('、')[l];
-                                data.children[i].children[j].children[l] = [{ "name": "" }];
-                                data.children[i].children[j].children[l].name = skill;
+                            for (var r = 0; r < lines[l].slice(lines[l].indexOf("：") + 1, 50).split('、').length; r++) {
+                                var skill = lines[l].slice(lines[l].indexOf("：") + 1, 50).split('、')[r];
+                                data.children[j].children[k].children[r] = [{ "name": "" }];
+                                data.children[j].children[k].children[r].name = skill;
                             }
                         }
                     }
+                    j = j + 1;
                 }
 
                 const root = d3.hierarchy(data);
@@ -259,7 +284,7 @@
         }
 
         margin = ({ top: 100, right: 120, bottom: 10, left: 500 });
-        var width = 1800; 
+        var width = 1800;
         dy = 300;
         dx = 30;
 
