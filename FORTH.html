@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>T  R  E  E</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style>
+        .button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 12px;
+            margin: 4px 2px;
+            -webkit-transition-duration: 0.4s; /* Safari */
+            transition-duration: 0.4s;
+            cursor: pointer;
+        }
+
+        .button1 {
+            background-color: white;
+            color: black;
+            border: 2px solid #4CAF50;
+        }
+
+            .button1:hover {
+                background-color: #4CAF50;
+                color: white;
+            }
+
+        .text {
+            border-style: solid;
+            border-color: #98bf21;
+        }
+    </style>
+</head>
+<body>
+    <div id="txt" align="center">
+        <h1>Create A Tree</h1>
+        <textarea id="input" class="text" cols="60" rows="10" placeholder="请输入内容"></textarea>
+    </div>
+
+    <div id="but" align="center" style="vertical-align: middle;">
+        <input type=button value=刷新 onclick="location.reload()" class="button button1" style="margin-right:150px;">
+        <button class="button button1" onclick="jiexi()" style="margin-left:150px;">生成</button>
+    </div>
+    <div id="main">
+        <div id="Tree"></div>
+    </div>
+    <script>
+        function jiexi() {
+            var text = document.getElementById("input").value;
+            var top = text.slice(text.indexOf("：") + 1, text.indexOf("2"))
+            var cnt = text.match(/2/g);
+            var line = text.match(/：/g).length;
+            var lines = text.split(/[(\r\n)\r\n]+/)
+            var start = 0, branch = 0, end = 0;
+            for (var i = 0; i < line; i++) {
+                if (lines[i].indexOf("导师") != -1) {
+                    start = i;
+                    i = i + 1;
+                    branch = 0;
+                    for (var j = i; j < line; j++) {
+                        if (lines[j].indexOf("生：") != -1) {
+                            branch = branch + 1;
+                        }
+                        if (lines[j].indexOf("导师") != -1) {
+                            end = j - 1;
+                            showAtree(start, branch, end, lines);
+                            break;
+                        }
+                        if (j == line - 1) {
+                            end = j;
+                            showAtree(start, branch, end, lines);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        function showAtree(start = 0, branch = 4, end = 5, lines) {
+            var flag = true;
+            if (flag == 1) {
+                let data = {
+                    "name": "",
+                    "children":
+                        [
+                            {
+                                "name": "",
+                                "children":
+                                    [
+                                        {
+                                            "name": "",
+                                            "children":
+                                                [
+                                                ]
+                                        }
+                                    ]
+                            }
+                        ]
+                };
+
+                data.name = lines[start].slice(lines[start].indexOf("：") + 1, lines[start + 1].indexOf("："));
+                var j = 0;
+                for (var i = start; i < start + branch; i++) {
+                    data.children[j] = {
+                        "name": "",
+                        "children":
+                            [
+                                {
+                                    "name": "",
+                                    "children":
+                                        [
+                                        ]
+                                }
+                            ]
+                    };
+                    data.children[j].name = lines[i + 1].slice(0, lines[i + 1].indexOf("："));
+                    for (var k = 0; k < lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、').length; k++) {
+                        var nam = lines[i + 1].slice(lines[i + 1].indexOf("：") + 1, 50).split('、')[k];
+                        data.children[j].children[k] = {
+                            "name": "",
+                            "children":
+                                [
+                                ]
+                        };
+                        data.children[j].children[k].name = nam;
+                        var x = -1;
+                        var sea = nam + "："
+                        for (var l = start; l < end; l++) {
+                            if (lines[l].indexOf(sea) != -1) {
+                                x = 1;
+                                break;
+                            }
+                        }
+                        if (x == 1) {
+                            for (var r = 0; r < lines[l].slice(lines[l].indexOf("：") + 1, 50).split('、').length; r++) {
+                                var skill = lines[l].slice(lines[l].indexOf("：") + 1, 50).split('、')[r];
+                                data.children[j].children[k].children[r] = [{ "name": "" }];
+                                data.children[j].children[k].children[r].name = skill;
+                            }
+                        }
+                    }
+                    j = j + 1;
+                }
+
+                const root = d3.hierarchy(data);
+
+
+                root.x0 = dy / 2;
+                root.y0 = 0;
+                root.descendants().forEach((d, i) => {
+                    d.id = i;
+                    d._children = d.children;
+                });
+
+
+                var svg = d3.select("#Tree")
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("viewBox", [-margin.left, -margin.top, width, dx])
+                    .style("font", "15px sans-serif")
+                    .style("user-select", "none");
+
+
+                const gLink = svg.append("g")
+                    .attr("fill", "none")
+                    .attr("stroke", "#555")
+                    .attr("stroke-opacity", 0.4)
+                    .attr("stroke-width", 1.5);
+
+
+                const gNode = svg.append("g")
+                    .attr("cursor", "pointer")
+                    .attr("pointer-events", "all");
+
+
+                function update(source) {
+                    const duration = d3.event && d3.event.altKey ? 2500 : 250;
+                    const nodes = root.descendants().reverse();
+                    const links = root.links();
+
+
+                    tree(root);
+
+                    var left = root;
+                    var right = root;
+                    root.eachBefore(node => {
+                        if (node.x < left.x) left = node;
+                        if (node.x > right.x) right = node;
+                    });
+
+
+                    const height = right.x - left.x + margin.top + margin.bottom;
+
+
+                    const transition = svg.transition()
+                        .duration(duration)
+                        .attr("viewBox", [-margin.left, left.x - margin.top, width, height])
+                        .tween("resize", window.ResizeObserver ? null : () => () => svg.dispatch("toggle"));
+
+
+                    const node = gNode.selectAll("g")
+                        .data(nodes, d => d.id);
+
+
+                    const nodeEnter = node.enter().append("g")
+                        .attr("transform", d => `translate(${source.y0},${source.x0})`)
+                        .attr("fill-opacity", 0)
+                        .attr("stroke-opacity", 0)
+                        .on("click", d => {
+                            d.children = d.children ? null : d._children;
+                            update(d);
+                        });
+
+
+                    nodeEnter.append("circle")
+                        .attr("r", 6)
+                        .attr("fill", d => d._children ? "#ccc" : "#fff")
+                        .attr("stroke", 'steelblue')
+                        .attr("stroke-width", 2);
+
+
+                    nodeEnter.append("text")
+                        .attr("dy", "0.31em")
+                        .attr("x", d => d._children ? -10 : 10)
+                        .attr("text-anchor", d => d._children ? "end" : "start")
+                        .text(d => d.data.name)
+                        .clone(true).lower()
+                        .attr("stroke-linejoin", "round")
+                        .attr("stroke-width", 3)
+                        .attr("stroke", "white");
+
+
+                    const nodeUpdate = node.merge(nodeEnter).transition(transition)
+                        .attr("transform", d => `translate(${d.y},${d.x})`)
+                        .attr("fill-opacity", 1)
+                        .attr("stroke-opacity", 1);
+
+
+                    const nodeExit = node.exit().transition(transition).remove()
+                        .attr("transform", d => `translate(${source.y},${source.x})`)
+                        .attr("fill-opacity", 0)
+                        .attr("stroke-opacity", 0);
+
+
+                    const link = gLink.selectAll("path")
+                        .data(links, d => d.target.id);
+
+
+                    const linkEnter = link.enter().append("path")
+                        .attr("d", d => {
+                            const o = { x: source.x0, y: source.y0 };
+                            return diagonal({ source: o, target: o });
+                        });
+
+
+                    link.merge(linkEnter).transition(transition)
+                        .attr("d", diagonal);
+
+
+                    link.exit().transition(transition).remove()
+                        .attr("d", d => {
+                            const o = { x: source.x, y: source.y };
+                            return diagonal({ source: o, target: o });
+                        });
+
+
+                    root.eachBefore(d => {
+                        d.x0 = d.x;
+                        d.y0 = d.y;
+                    });
+                    flag = false;
+                }
+
+                update(root);
+
+                return svg.node();
+            }
+        }
+
+        margin = ({ top: 100, right: 120, bottom: 10, left: 500 });
+        var width = 1800;
+        dy = 300;
+        dx = 30;
+
+        tree = d3.tree().nodeSize([dx, dy]);
+        diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+    </script>
+</body>
+</html>
